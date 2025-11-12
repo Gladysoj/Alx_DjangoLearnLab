@@ -1,4 +1,8 @@
-from relationship_app.models import Author, Book, Library, Librarian
+from relationship_app.models import Librarian, Library
+
+library_instance = Library.objects.get(name="Qasr Al Watan Library")  
+librarian = Librarian.objects.get(library=library_instance)
+print(f"Librarian for {library_instance.name}: {librarian.name}")
 
 # 1️⃣ Query all books by a specific author
 def books_by_author(author_name):
