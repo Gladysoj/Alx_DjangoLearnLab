@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Author, Book
 import datetime
 
-class BookSerializer(serializers.Modelserializer):
+class BookSerializer(serializers.ModelSerializer):
     """
     Serializer for the Book model.
     Includes validation to ensure publication_year is not in the future.
@@ -17,12 +17,14 @@ class BookSerializer(serializers.Modelserializer):
             raise serializers.ValidationError("Publication year cannot be in the future.")
         return value
 
-    class AuthorSerializer(serializers.ModelSerializer):
-        books = BookSerializer(many=True, read_only=True)
-        """
-        Serializer for the Author model.
-        Nests BookSerializer to show all books written by the author.
-        """
-        class Meta:
-            model = Author
-            fields = ['id', 'name', 'books']   
+
+class AuthorSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Author model.
+    Nests BookSerializer to show all books written by the author.
+    """
+    books = BookSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Author
+        fields = ['id', 'name', 'books']
