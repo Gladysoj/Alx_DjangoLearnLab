@@ -2,6 +2,16 @@ from rest_framework import serializers
 from .models import Author, Book
 import datetime
 
+class BookCreateView(generics.CreateAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # Example: attach extra logic before saving
+        serializer.save()
+
+
 class BookSerializer(serializers.ModelSerializer):
     """
     Serializer for the Book model.
