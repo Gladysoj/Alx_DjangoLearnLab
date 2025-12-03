@@ -53,6 +53,7 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'django_blog.urls'
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / "static"]
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
