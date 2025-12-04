@@ -4,13 +4,46 @@
 {% block content %}
 <article>
   <h1>{{ post.title }}</h1>
-  <p class="meta">By {{ post.author.username }} • Updated {{ post.updated_at|date:"M d, Y H:i" }}</p>
+  <p class="meta">By {{ post.author.username }} • {{ post.published_date|date:"M d, Y H:i" }}</p>
   <div class="content">{{ post.content|linebreaks }}</div>
   {% if user.is_authenticated and user == post.author %}
-    <p>
-      <a href="{% url 'post-update' post.pk %}">Edit</a> |
-      <a href="{% url 'post-delete' post.pk %}">Delete</a>
-    </p>
+    <p><a href="{% url 'post-update' post.pk %}">Edit</a> | <a href="{% url 'post-delete' post.pk %}">Delete</a></p>
   {% endif %}
 </article>
+
+<hr>
+
+<section>
+  <h2>Comments ({{ post.comments.count }})</h2>
+
+  {% for comment in post.comments.all %}
+    <div class="comment">
+      <p class="meta">{{ comment.author.username }} • {{ comment.created_at|date:"M d, Y H:i" }}</p>
+      <p>{{ comment.content|linebreaks }}</p>
+      {% if user.is_authenticated and user == comment.author %}
+        <p>
+          <a href="{% url 'comment-update' post_id=post.pk pk=comment.pk %}">Edit</a> |
+          <a href="{% url 'comment-delete' post_id=post.pk pk=comment.pk %}">Delete</a>
+        </p>
+      {% endif %}
+    </div>
+  {% empty %}
+    <p>No comments yet.</p>
+  {% endfor %}
+</section>
+
+{% if user.is_authenticated %}
+  <hr>
+  <section>
+    <h3>Add a comment</h3>
+    <form method="post" action="{% url 'comment-create' post_id=post.pk %}">
+      {% csrf_token %}
+      <textarea name="content" rows="4" placeholder="Write your comment..."></textarea>
+      <button type="submit">Post Comment</button>
+    </form>
+  </section>
+{% else %}
+  <p><a href="{% url 'login' %}">Log in</a> to post a comment.</p>
+{% endif %}
+
 {% endblock %}
