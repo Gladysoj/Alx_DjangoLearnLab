@@ -1,0 +1,16 @@
+<!-- blog/templates/blog/post_detail.html -->
+{% extends "blog/base.html" %}
+{% block title %}{{ post.title }}{% endblock %}
+{% block content %}
+<article>
+  <h1>{{ post.title }}</h1>
+  <p class="meta">By {{ post.author.username }} • Updated {{ post.updated_at|date:"M d, Y H:i" }}</p>
+  <div class="content">{{ post.content|linebreaks }}</div>
+  {% if user.is_authenticated and user == post.author %}
+    <p>
+      <a href="{% url 'post-update' post.pk %}">Edit</a> |
+      <a href="{% url 'post-delete' post.pk %}">Delete</a>
+    </p>
+  {% endif %}
+</article>
+{% endblock %}
