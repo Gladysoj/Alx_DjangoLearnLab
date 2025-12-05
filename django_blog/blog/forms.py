@@ -1,4 +1,5 @@
 # blog/forms.py
+from taggit.forms import TagWidget
 from django import forms
 from .models import Post, Tag
 from django.contrib.auth.forms import UserCreationForm
@@ -18,6 +19,7 @@ class PostForm(forms.ModelForm):
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'Enter a descriptive title'}),
             'content': forms.Textarea(attrs={'rows': 8, 'placeholder': 'Write your post...'}),
+            'tags': TagWidget(),
         }
 
     def clean_tags_input(self):
