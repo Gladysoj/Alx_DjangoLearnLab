@@ -1,7 +1,7 @@
 # blog/urls.py
 from django.urls import path
 from .views import (
-    TagPostListView, SearchResultsView,
+    PostByTagListView, SearchResultsView,
     register_view, login_view, logout_view, profile_view,
     PostListView, PostDetailView, PostCreateView, PostUpdateView, PostDeleteView,
     CommentCreateView, CommentUpdateView, CommentDeleteView,
@@ -26,7 +26,7 @@ urlpatterns = [
     path("comment/<int:pk>/update/", CommentUpdateView.as_view(), name="comment-update"),      # ✅ required
     path("comment/<int:pk>/delete/", CommentDeleteView.as_view(), name="comment-delete"),      # ✅ required
 
-     path("tags/<str:tag_name>/", TagPostListView.as_view(), name="tag-posts"),
+    path("tags/<slug:tag_slug>/", PostByTagListView.as_view(), name="tag-posts"),   # ✅ required
     path("search/", SearchResultsView.as_view(), name="search"),
 
 ]

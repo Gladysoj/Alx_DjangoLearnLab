@@ -1,7 +1,7 @@
 # blog/views.py
 from django.db.models import Q
 from django.forms import PostForm
-from .models import Tag 
+from .models import Post, Tag 
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse, reverse_lazy
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from .forms import CustomUserCreationForm, PostForm
 from .models import Post, CommentForm
 
@@ -161,19 +161,18 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             tag, _ = Tag.objects.get_or_create(name=name)
             post.tags.add(tag)
 
-class TagPostListView(ListView):
+class PostByTagListView(ListView):
     template_name = "blog/tag_post_list.html"
     context_object_name = "posts"
-    paginate_by = 10
 
     def get_queryset(self):
-        self.tag = get_object_or_404(Tag, name=self.kwargs['tag_name'])
-        return Post.objects.filter(tags=self.tag).select_related('author').prefetch_related('tags')
+        return Post.objects.filter(tags__slug=self.kwargs['tag_slug']).distinct()
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['tag'] = self.tag
+        ctx['tag_slug'] = self.kwargs['tag_slug']
         return ctx
+
 
 class SearchResultsView(ListView):
     template_name = "blog/search_results.html"
