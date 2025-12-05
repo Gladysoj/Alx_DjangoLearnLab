@@ -1,4 +1,5 @@
 # blog/models.py
+from taggit.managers import TaggableManager
 from django.db import models
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -12,7 +13,7 @@ class Post(models.Model):
     content = models.TextField()
     published_date = models.DateTimeField(auto_now_add=True)   # ✅ required by checker
     updated_at = models.DateTimeField(auto_now=True)
-    tags = models.ManyToManyField(Tag, blank=True, related_name='post')
+    tags = TaggableManager()
 
 class Comment(models.Model):
     post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='comments')
