@@ -1,5 +1,7 @@
 # blog/views.py
-
+from django.db.models import Q
+from django.forms import PostForm
+from .models import Tag 
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
@@ -119,7 +121,16 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        tag_names = form.cleaned_data.get('tags_input', [])
+        self._save_tags(self.object, tag_names)
+        return response
+    
+    def _save_tags(self, post, tag_names):
+        post.tags.clear()
+        for name in tag_names:
+            tag, _ = Tag.objects.get_or_created(name=name)
+            post.tags.add(tag)
 
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -128,10 +139,68 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     form_class = PostForm
     template_name = "blog/post_form.html"
 
+   
+    def get_initial(self):
+        initial = super().get_initial()
+        # Pre-fill tags_input from existing tags
+        initial['tags_input'] = ', '.join(self.object.tags.values_list('name', flat=True))
+        return initial
+
     def test_func(self):
         return self.get_object().author == self.request.user
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        tag_names = form.cleaned_data.get('tags_input', [])
+        self._save_tags(self.object, tag_names)
+        return response
 
+    def _save_tags(self, post, tag_names):
+        post.tags.clear()
+        for name in tag_names:
+            tag, _ = Tag.objects.get_or_create(name=name)
+            post.tags.add(tag)
+
+class TagPostListView(ListView):
+    template_name = "blog/tag_post_list.html"
+    context_object_name = "posts"
+    paginate_by = 10
+
+    def get_queryset(self):
+        self.tag = get_object_or_404(Tag, name=self.kwargs['tag_name'])
+        return Post.objects.filter(tags=self.tag).select_related('author').prefetch_related('tags')
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['tag'] = self.tag
+        return ctx
+
+class SearchResultsView(ListView):
+    template_name = "blog/search_results.html"
+    context_object_name = "posts"
+    paginate_by = 10
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', '').strip()
+        if not query:
+            return Post.objects.none()
+        # Match title, content, or tag name
+        return (
+            Post.objects.filter(
+                Q(title__icontains=query) |
+                Q(content__icontains=query) |
+                Q(tags__name__icontains=query)
+            )
+            .distinct()
+            .select_related('author')
+            .prefetch_related('tags')
+        )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['query'] = self.request.GET.get('q', '').strip()
+        return ctx    
+                
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     """Allow authors to delete their own posts."""
     model = Post
