@@ -1,6 +1,25 @@
-from rest_framework import viewsets, permissions
+from django.db.models import Q
+from rest_framework.pagination import PageNumberPagination
+from rest_framework import generics, viewsets, permissions
 from .models import Post, Comment
 from .serializers import PostSerializer, CommentSerializer
+
+class FeedPagination(PageNumberPagination):
+    page_size = 10
+
+class FeedView(generics.ListAPIView):
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = FeedPagination
+
+    def get_queryset(self):
+        user = self.request.user
+        followed_ids = user.following.values_list('id', flat=True)
+        return (
+            Post.objects
+            .filter(Q(author__in=followed_ids) | Q(author=user))
+            .order_by('-created_at')
+        )
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
