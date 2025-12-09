@@ -22,13 +22,3 @@ class Comment(models.Model):
     def __str__(self):
         return f"Comment by {self.author} on {self.post}"
 
-class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all().order_by('-created_at')
-    serializer_class = PostSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
-    filterset_fields = ['title', 'content']
-    search_fields = ['title', 'content']
-    ordering_fields = ['created_at', 'updated_at']
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)

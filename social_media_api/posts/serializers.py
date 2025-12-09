@@ -1,18 +1,38 @@
+from django.contrib.auth import get_user_model, authenticate
 from rest_framework import serializers
-from .models import Post, Comment
+from rest_framework.authtoken.models import Token
 
-class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField(read_only=True)
+User = get_user_model()
 
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Comment
-        fields = ['id', 'post', 'author', 'content', 'created_at', 'updated_at']
+        model = User
+        fields = ['id', 'username', 'email', 'bio', 'profile_picture']
 
 
-class PostSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField(read_only=True)
-    comments = CommentSerializer(many=True, read_only=True)
-
+class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Post
-        fields = ['id', 'author', 'title', 'content', 'created_at', 'updated_at', 'comments']
+        model = User
+        fields = ['username', 'email', 'password']
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        # ✅ Explicitly use get_user_model().objects.create_user
+        user = get_user_model().objects.create_user(
+            username=validated_data['username'],
+            email=validated_data.get('email'),
+            password=validated_data['password']
+        )
+        Token.objects.create(user=user)
+        return user
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+    def validate(self, data):
+        user = authenticate(**data)
+        if user and user.is_active:
+            return user
+        raise serializers.ValidationError("Invalid credentials")
