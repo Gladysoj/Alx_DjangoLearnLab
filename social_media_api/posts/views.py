@@ -3,18 +3,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from notifications.models import Notification
-from .serializers import NotificationSerializer
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import generics, viewsets, permissions
 from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer
 
-class NotificationListView(generics.ListAPIView):
-    serializer_class = NotificationSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return Notification.objects.filter(recipient=self.request.user).order_by('-timestamp')
 
 class LikePostView(APIView):
     permission_classes = [permissions.IsAuthenticated]
