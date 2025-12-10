@@ -5,6 +5,18 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
 
+CustomUser = get_user_model()
+
+class UserListView(generics.GenericAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+def get(self, request, *args, **kwargs):
+    users = self.get_queryset()
+    serializer = self.get_serializer(users, many=True)
+    return Response(serializer.data)    
+
 User = get_user_model()
 
 class FollowUserView(APIView):

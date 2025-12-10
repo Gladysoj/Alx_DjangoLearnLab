@@ -1,4 +1,5 @@
 from django.urls import path, include
+from .views import UserListView
 from .views import RegisterView, LoginView, ProfileView
 from .views import FollowUserView, UnfollowUserView, MeView
 from .views import RegisterSerializer, LoginSerializer
@@ -19,6 +20,8 @@ urlpatterns = [
     path('me/', MeView.as_view(), name='me'),
 
      path('feed/', FeedView.as_view(), name='feed'),
+
+     path('user/', UserListView.as_view(), name='user-list'),
 ]
 
 urlpatterns += router.urls
